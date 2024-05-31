@@ -15,8 +15,9 @@ namespace py=pybind11;
 
 py::array run_seg(py::array_t<uint8_t>& img, py::array_t<int> hues, py::array_t<int> colors, int frametype = Utils::FrameType::Tracked) {
   Utils::HUE hueList = {};
-  for (int i = 0; i < hues.size(); i++) {
-    hueList.push_back({(double) hues.at(i), colors.at(i)});
+  hueList.push_back({(double) hues.at(0), -1});
+  for (int i = 0; i < hues.size()-1; i++) {
+    hueList.push_back({(double) hues.at(i+1), colors.at(i)});
   }
 
   Vision& vis = Vision::singleton(hueList);

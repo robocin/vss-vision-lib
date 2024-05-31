@@ -30,7 +30,7 @@ py::array run_seg(py::array_t<uint8_t>& img, py::array_t<int> hues, py::array_t<
 }
 
 
-PYBIND11_MODULE(_vss_vision, m) {
-  m.doc() = "vision lerolero";
+PYBIND11_MODULE(vss_vision, m) {
+  m.doc() = "vss-vision lib";
   m.def("run_seg", run_seg, "run segmentation on frame");
 }

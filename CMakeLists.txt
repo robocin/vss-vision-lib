@@ -8,7 +8,8 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/src")
+# set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/src")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/vss_vision)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -23,7 +24,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(pybind11)
 
-set(python_module_name _vss_vision)
+set(python_module_name vss_vision)
 
 set(SOURCES
     src/main.cpp
@@ -97,5 +98,12 @@ target_link_libraries(${python_module_name} PUBLIC ${OpenCV_LIBS})
 
 find_package(TBB REQUIRED)
 target_link_libraries(${python_module_name} PUBLIC TBB::tbb)
+
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/__init__.py
+        DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+
+message(${python_module_name})
+
+install(TARGETS ${python_module_name} DESTINATION .)
 
 

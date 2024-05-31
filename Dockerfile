@@ -1,5 +1,17 @@
 FROM ubuntu:22.04
 
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
+# for python3.8
+RUN apt update && apt install -y tzdata software-properties-common \
+    && add-apt-repository -y ppa:deadsnakes/ppa \
+    && apt install -y python3.8 python3.8-dev python3.8-venv \
+    && python3.8 -m venv /home/.env \
+    && . /home/.env/bin/activate \
+    && pip install opencv-python pybind11 scikit-build
+
+
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends \
     build-essential \
@@ -15,24 +27,19 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     python3 \
     libpython3-dev \
     python3-dev \
-    python3-pip \
+    python3-pip
 
-RUN cd /usr/local/src \
-    && wget https://github.com/pybind/pybind11/archive/refs/tags/v2.12.0.tar.gz \
-    && tar xvf v2.12.0.tar.gz \
-    && cd pybind11-2.12.0 \
+COPY . /opt/vss-vision
+
+WORKDIR /opt/vss-vision
+
+RUN . /home/.env/bin/activate \
     && mkdir build \
     && cd build \
     && cmake .. \
     && make \
-    && make install
+		&& cd .. \
+		&& pip install -e .
 
-COPY . /opt/vss-vision
 
-WORKDIR /opt/vss-vision/build
-
-RUN cmake clean .. -Wno-dev && make -j4
-
-WORKDIR /opt/vss-vision/src
-
-CMD ["./VSS-VISION"]
+WORKDIR /opt/vss-vision

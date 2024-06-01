@@ -1,4 +1,7 @@
 #include "Vision.h"
+#include "Utils/Utils.h"
+#include "Vision/PositionProcessing/BlobDetection.h"
+#include "Vision/PositionProcessing/PositionProcessing.h"
 #include <algorithm>
 #include <vector>
 
@@ -99,6 +102,18 @@ cv::Mat Vision::update(cv::Mat &frame, Utils::FrameType frametype)
   Players players = vss.players();
   entities.insert(entities.end(),players.begin(),players.end());
    return this->output_frame;
+}
+
+PositionProcessing::Blobs Vision::detect(cv::Mat &frame)
+{
+  this->setFrame(frame);
+  this->update(Utils::FrameType::Tracked);
+  std::vector<Entity> entities;
+  entities.resize(1);
+  entities[0] = vss.ball();
+  Players players = vss.players();
+  entities.insert(entities.end(),players.begin(),players.end());
+  return this->_detection->getDetectedBlobs();   
 }
 
 void Vision::getSegmentationDebugFrame(cv::Mat& frame)

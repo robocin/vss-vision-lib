@@ -426,4 +426,15 @@ int PositionProcessing::newId(int oldId){
   return id;
 }
 
+PositionProcessing::Blobs PositionProcessing::getDetectedBlobs(){
+  Blobs blobs;
+  for(int i = 0; i < ColorStrange; i++) {
+    for(int j = 0; j < CLUSTERSPERCOLOR; j++) {
+      if(blob[i][j].valid) {
+        blobs.push_back(blob[i][j]);
+      }
+    }
+  }
+  return blobs;
+}
 

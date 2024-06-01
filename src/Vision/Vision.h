@@ -159,6 +159,8 @@ public:
 
   Point getFrameDimensions();
 
+  PositionProcessing::Blobs detect(cv::Mat &frame);
+
   /**
    * @brief    function called everytime a new frame reachs the camera
    *

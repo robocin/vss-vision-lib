@@ -106,4 +106,6 @@ void BlobDetection::findBlobs(cv::Mat& debugFrame) {
 
     }
   }
+
 }
+

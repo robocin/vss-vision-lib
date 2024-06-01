@@ -36,7 +36,6 @@ public:
    * @param[in]  frame  frame
    */
   void getDebugFrame(cv::Mat& frame);
-
 private:
 
 

@@ -1,4 +1,5 @@
 #include "PositionProcessing.h"
+#include "Entity/Entity.h"
 #include "Utils/EnumsAndConstants.h"
 
 void PositionProcessing::matchBlobs(cv::Mat& debugFrame){
@@ -23,6 +24,12 @@ void PositionProcessing::matchBlobs(cv::Mat& debugFrame){
 
   Entity ball;
   findBall(ball,debugFrame);
+
+  setBlobs(BlobsEntities({
+    entities.ball,
+    groupedBlobs.team,
+    groupedBlobs.enemies
+  }));
 
   vss.setEntities(ball,allPlayers);
 }
@@ -137,6 +144,8 @@ void PositionProcessing::findBall(Entity &ball, cv::Mat& debugFrame) {
         maxArea = blobBall.area;
       }
     }
+
+    setBlobs(BlobsEntities({blobBall}));
 
     // Debug
     //cv::circle(debugFrame, blobBall.position, 9, _colorCar[OrangeCOL], 2, cv::LINE_AA);
@@ -323,6 +332,10 @@ PositionProcessing::FieldRegions PositionProcessing::pairBlobs() {
   return result;
 }
 
+void PositionProcessing::setBlobs(BlobsEntities blobs) {
+  this->entities = blobs;
+}
+
 void PositionProcessing::setUp(std::string var, int value)
 {
   this->param[var] = value;
@@ -426,15 +439,7 @@ int PositionProcessing::newId(int oldId){
   return id;
 }
 
-PositionProcessing::Blobs PositionProcessing::getDetectedBlobs(){
-  Blobs blobs;
-  for(int i = 0; i < ColorStrange; i++) {
-    for(int j = 0; j < CLUSTERSPERCOLOR; j++) {
-      if(blob[i][j].valid) {
-        blobs.push_back(blob[i][j]);
-      }
-    }
-  }
-  return blobs;
+PositionProcessing::BlobsEntities PositionProcessing::getDetection(){
+  return this->entities;
 }
 

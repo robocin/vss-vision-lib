@@ -1,4 +1,5 @@
 #include "Vision.h"
+#include "Field/Field.h"
 #include "Utils/Utils.h"
 #include "Vision/PositionProcessing/BlobDetection.h"
 #include "Vision/PositionProcessing/PositionProcessing.h"
@@ -63,30 +64,27 @@ void Vision::update(Utils::FrameType frametype)
     
     this->_processingFrame = this->_currentFrame.clone();
 
+    
+    this->_processingFrame = this->_segmentation->run(this->_processingFrame);
 
-    if (this->_isProcessingEnabled) {
-
-        this->_processingFrame = this->_segmentation->run(this->_processingFrame);
-
-        if(frametype == Utils::FrameType::Tracked){
-            auto _runs = this->_compression->run(this->_processingFrame);
-            saveFrameDimensions(this->_processingFrame);
-            this->_detection->run(_runs, this->_processingFrame.rows, this->_processingFrame.cols);
-            
-            cv::Mat frameAux, frameAux2;
-            getCurrentFrame(frameAux);
-            getDetectionFrame(frameAux2);
-            cv::resize(frameAux2, frameAux2, frameAux.size());
-            cv::Mat aux = vss.frameCopy();
-            vss.clearFrame();
-            cv::resize(aux, aux, frameAux2.size());
-            this->output_frame = frameAux + frameAux2 + aux;
-            
-        }else if(frametype == Utils::FrameType::Segmented){
-            cv::Mat frameAux2;
-            getSegmentationFrame(frameAux2);
-            this->output_frame = frameAux2;
-        }
+    if(frametype == Utils::FrameType::Tracked){
+        auto _runs = this->_compression->run(this->_processingFrame);
+        saveFrameDimensions(this->_processingFrame);
+        this->_detection->run(_runs, this->_processingFrame.rows, this->_processingFrame.cols);
+        
+        cv::Mat frameAux, frameAux2;
+        getCurrentFrame(frameAux);
+        getDetectionFrame(frameAux2);
+        cv::resize(frameAux2, frameAux2, frameAux.size());
+        cv::Mat aux = vss.frameCopy();
+        vss.clearFrame();
+        cv::resize(aux, aux, frameAux2.size());
+        this->output_frame = frameAux + frameAux2 + aux;
+        
+    }else if(frametype == Utils::FrameType::Segmented){
+        cv::Mat frameAux2;
+        getSegmentationFrame(frameAux2);
+        this->output_frame = frameAux2;
     }
 }
 
@@ -104,7 +102,7 @@ cv::Mat Vision::update(cv::Mat &frame, Utils::FrameType frametype)
    return this->output_frame;
 }
 
-PositionProcessing::Blobs Vision::detect(cv::Mat &frame)
+PositionProcessing::BlobsEntities Vision::detect(cv::Mat &frame)
 {
   this->setFrame(frame);
   this->update(Utils::FrameType::Tracked);
@@ -113,7 +111,7 @@ PositionProcessing::Blobs Vision::detect(cv::Mat &frame)
   entities[0] = vss.ball();
   Players players = vss.players();
   entities.insert(entities.end(),players.begin(),players.end());
-  return this->_detection->getDetectedBlobs();   
+  return this->_detection->getDetection();   
 }
 
 void Vision::getSegmentationDebugFrame(cv::Mat& frame)

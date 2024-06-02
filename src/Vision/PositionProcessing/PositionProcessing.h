@@ -136,6 +136,12 @@ public:
     Regions enemies;
   } FieldRegions;
 
+  typedef struct BlobsEntities {
+    Blob ball;
+    Regions team;
+    Regions enemies;
+  } BlobsEntities;
+
   /**
    * @brief    Basic function to run the algoritmh
    *
@@ -184,6 +190,11 @@ public:
 
   Blobs getDetectedBlobs();
 
+  BlobsEntities getDetection();
+
+  void setBlobs(BlobsEntities entities);
+
+  BlobsEntities entities;
 
 protected:
 

@@ -23,6 +23,7 @@ Vision::Vision(Utils::HUE hueList)
     this->_deepLogFileName = "log"; // default file name
     this->_deepLogFileFolder = "Log/deep/"; // default file folder
     this->_visionRunTime = 0;
+    std::cout << "Vision initialized" << std::endl;
 }
 
 Vision::~Vision()
@@ -37,6 +38,9 @@ Vision::~Vision()
 Vision& Vision::singleton(Utils::HUE hueList)
 {
   static Vision instance(hueList);
+
+  // std::cout << "updated hue for real" << std::endl;
+  instance.hueList = hueList;
 
   return instance;
 }
@@ -92,6 +96,8 @@ void Vision::update(Utils::FrameType frametype)
 
 cv::Mat Vision::update(cv::Mat &frame, Utils::FrameType frametype)
 {
+  delete this->_segmentation;
+  this->_segmentation = new MaggicSegmentation(this->hueList);
   this->setFrame(frame);
   this->update(frametype);
   std::vector<Entity> entities;

@@ -156,6 +156,7 @@ public:
    * @return   return a Vision reference, unique and common to all class in the program
    */
   static Vision& singleton(Utils::HUE hueList);
+  Utils::HUE hueList;
 
   Point getFrameDimensions();
 

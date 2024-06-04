@@ -470,8 +470,7 @@ void MaggicSegmentation::setHUETable(bool fromFile) {
       hueList.push_back(std::make_pair(hueChannel,defaultHueList[i].second));
     }
 
-
-    // get all color descriptors into hueList
+// get all color descriptors into hueList
     for(int i=1;i<8;i++) {
       ColorDescriptor &colors = this->robotsDescriptors[i].colors;
       for (size_t j=0;j<colors.size();j++) {
@@ -578,7 +577,7 @@ void MaggicSegmentation::generateLUTFromHUE() {
     }
 
   }});
-  std::cout << "Done generating LUT from Hue.\n";
+  // std::cout << "Done generating LUT from Hue.\n";
   //spdlog::get("Vision")->info("MaggicSegmentation::Done generating LUT from Hue.\n");
   this->isLUTReady = true;
 }

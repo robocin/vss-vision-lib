@@ -53,8 +53,8 @@ MaggicSegmentation::default_normalization_method =
 MaggicSegmentation::MaggicSegmentation(Utils::HUE list)
 {  
   this->isLUTReady = false;
-  this->_LUT = new uchar[LUT_SIZE/3];
-  memset(this->_LUT,0,LUT_SIZE/3  *sizeof(uchar)); // clear _LUT
+  // this->_LUT = new uchar[LUT_SIZE/3];
+  // memset(this->_LUT,0,LUT_SIZE/3  *sizeof(uchar)); // clear _LUT
   this->_HUETable = new int[256];
   memset(this->_HUETable,0,256*sizeof(int)); // clear HUETable
   this->_calibrationParameters = new ColorInterval[NUMBEROFCOLOR];
@@ -144,7 +144,7 @@ MaggicSegmentation::~MaggicSegmentation()
   delete LUT_GPU_V;
   FINISH_LUT_GPU();
 #endif
-  delete this->_LUT;
+  // delete this->_LUT;
   delete this->_HUETable;
   delete this->_calibrationParameters;
 }
@@ -312,25 +312,25 @@ void MaggicSegmentation::filterGray(cv::Mat &d, cv::Mat &o) {
   );*/
 }
 
-inline void MaggicSegmentation::filterGray(cv::Vec3b &color, cv::Vec3b &coloro) {
+  inline void MaggicSegmentation::filterGray(cv::Vec3b &color, cv::Vec3b &coloro) {
     float x = coloro[0];
     float y = coloro[1];
     float z = coloro[2];
     float a = 1.f;
     switch (this->normalization_method) {
-    case CHROMATIC_NORMALIZATION:
+      case CHROMATIC_NORMALIZATION:
         a = 255.0f / static_cast<float>(x + y + z);
         x = static_cast<uchar>(x*a);
         y = static_cast<uchar>(y*a);
         z = static_cast<uchar>(z*a);
         break;
-    case VECTOR_NORMALIZATION:
+      case VECTOR_NORMALIZATION:
         a = 255.0f / static_cast<float>(sqrt(x*x + y*y + z*z));
         x = static_cast<uchar>(x*a);
         y = static_cast<uchar>(y*a);
         z = static_cast<uchar>(z*a);
         break;
-    case WEIGHTED_NORMALIZATION:
+      case WEIGHTED_NORMALIZATION:
         x *= x;
         y *= y;
         z *= z;
@@ -339,7 +339,7 @@ inline void MaggicSegmentation::filterGray(cv::Vec3b &color, cv::Vec3b &coloro) 
         y = static_cast<uchar>(y*a);
         z = static_cast<uchar>(z*a);
         break;
-    default:
+      default:
         break;
     }
     float men = std::min(std::min(x, y), z);
@@ -354,6 +354,7 @@ inline void MaggicSegmentation::filterGray(cv::Vec3b &color, cv::Vec3b &coloro) 
       color = coloro;
     }
 }
+
 
 void MaggicSegmentation::filterBinarizeColored(cv::Mat &d, cv::Mat &o) {
   cv::Mat res = cv::Mat::zeros(d.size(), CV_8UC1);
@@ -516,6 +517,9 @@ void MaggicSegmentation::setHUETable(bool fromFile) {
 }
 
 void MaggicSegmentation::generateLUTFromHUE() {
+  this->isLUTReady = true;
+  return;
+
   this->isLUTReady = false;
   static cv::Mat LUT_BGR2HSV = cv::Mat::zeros(1,LUT_SIZE/3,CV_8UC3);
   static bool preprocessed = false;
@@ -1054,13 +1058,13 @@ cv::Mat MaggicSegmentation::run(cv::Mat &frame)
   this->_segmentationFrame = cv::Mat::zeros(frame.rows,frame.cols,CV_8UC3);
   cv::Mat returnFrame = cv::Mat::zeros(frame.rows,frame.cols,CV_8U);
 
-//  #pragma omp parallel for num_threads(8)
+  #pragma omp parallel for
   for (int i = 0; i < frame.rows; i++) {
 
     const RGB* row = frame.ptr<RGB>(i);
 
     for (int j = 0; j < frame.cols; j++) {
-      label = this->_LUT[(row[j].red<<16) + (row[j].green<<8) + row[j].blue];
+      label = value(row[j]);
       this->_segmentationFrame.ptr<RGB>(i)[j] = ColorSpace::markerColors[label];
       returnFrame.ptr<uchar>(i)[j] = static_cast<uchar>(label);
      }
@@ -1300,7 +1304,7 @@ void MaggicSegmentation::doDetails() {
             this->generateLUTFromHUE();
             uchar* dst_LUT = reinterpret_cast<LUTSegmentation*>(Vision::singleton(this->hueList).getSegmentationObject())->getLUT();
             uchar* src_LUT = this->getLUT();
-            memcpy(dst_LUT,src_LUT,LUTSIZE*sizeof(uchar));
+            // memcpy(dst_LUT,src_LUT,LUTSIZE*sizeof(uchar));
         }
     }
 

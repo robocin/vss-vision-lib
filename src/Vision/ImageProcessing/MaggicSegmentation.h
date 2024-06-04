@@ -302,6 +302,67 @@ private:
   bool colorDistribution = false;
   bool enableFilter = false;
 
+  
+  inline int value(const RGB& px) {
+    static cv::Mat LUT_BGR2HSV = cv::Mat::zeros(1,LUT_SIZE/3,CV_8UC3);
+    static bool preprocessed = false;
+    if (!preprocessed) {
+
+      for (int i=0;i<LUT_SIZE/3;i++) {
+        uchar r = static_cast<uchar>((i&0x00ff0000) >> 16);
+        uchar g = static_cast<uchar>((i&0x0000ff00) >> 8);
+        uchar b = static_cast<uchar>(i&0x000000ff);
+        LUT_BGR2HSV.at<cv::Vec3b>(0,i) = cv::Vec3b(b,g,r);
+      }
+
+      cv::cvtColor(LUT_BGR2HSV,LUT_BGR2HSV,cv::COLOR_BGR2HSV_FULL);
+
+      // std::cout << "PREPROCESSED" << std::endl;
+
+      preprocessed = true;
+    }
+
+    uchar r = px.red;
+    uchar g = px.green;
+    uchar b = px.blue;
+
+    int i = (int(px.red)<<16) + (int(px.green)<<8) + px.blue;
+
+    cv::Vec3b &coloro = LUT_BGR2HSV.at<cv::Vec3b>(0,i);
+
+    bool filter = false;
+    if (!this->_filterMask.empty())  {
+      // saturation 1 > value 2
+      if (coloro[1] > coloro[2]) {
+        // value 2, hue 0
+        int ii = coloro[2]/2;
+        int jj = coloro[0];
+
+        filter = static_cast<bool>(this->_filterMask.at<uchar>(ii,jj));
+
+      } else {
+        // saturation 1, hue 0
+        int ii = 127 + (255-coloro[1])/2;
+        int jj = coloro[0];
+
+        filter = static_cast<bool>(this->_filterMask.at<uchar>(ii,jj));
+
+      }
+      if (filter) {
+        return 0;
+      }
+    }
+
+    cv::Vec3b bgr(b,g,r);
+    filterGray(bgr,bgr);
+    if (bgr[0] == 0 && bgr[1] == 0 && bgr[2] == 0) {
+      return 0;
+    }
+    else {
+      return static_cast<uchar>(this->_HUETable[coloro[0]]);
+    }
+  }
+
   std::string _colorLabels[NUMBEROFCOLOR] = { NOCOLLABEL,
                         ORANGELABEL,
                         BLUELABEL,

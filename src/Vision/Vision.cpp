@@ -23,7 +23,7 @@ Vision::Vision(Utils::HUE hueList)
     this->_deepLogFileName = "log"; // default file name
     this->_deepLogFileFolder = "Log/deep/"; // default file folder
     this->_visionRunTime = 0;
-    std::cout << "Vision initialized" << std::endl;
+    // std::cout << "Vision initialized" << std::endl;
 }
 
 Vision::~Vision()

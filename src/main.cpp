@@ -7,6 +7,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <Python.h>
+#include <pybind11/pytypes.h>
 
 namespace py=pybind11;
 
@@ -27,7 +28,10 @@ py::dict convertEntitiesToPyDict(const BlobsEntities& entities) {
             for (const auto& blob : region.blobs) {
                 py::dict py_blob;
                 py_blob["id"] = blob.id;
-                py_blob["position"] = py::make_tuple(blob.position.x, blob.position.y);
+                py::list position;
+                position.append(blob.position.x);
+                position.append(blob.position.y);
+                py_blob["position"] = position;
                 py_blob["angle"] = blob.angle;
                 py_blob["valid"] = blob.valid;
                 py_blob["area"] = blob.area;

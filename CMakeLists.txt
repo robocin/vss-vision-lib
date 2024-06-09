@@ -89,10 +89,15 @@ pybind11_add_module(${python_module_name} MODULE
 
 # add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${RESOURCES} ${PROTO_SRCS} ${PROTO_HDRS})
 
+set(CMAKE_CXX_FLAGS -O3)
+message(CMAKE_CXX_FLAGS)
+message("${CMAKE_CXX_FLAGS}")
+
 target_include_directories(${python_module_name} PUBLIC "${PROJECT_SOURCE_DIR}/src")
 target_include_directories(${python_module_name} PUBLIC "${PROJECT_SOURCE_DIR}/include")
 target_include_directories(${python_module_name} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
+set(OpenCV_STATIC ON)
 find_package(OpenCV REQUIRED)
 target_link_libraries(${python_module_name} PUBLIC ${OpenCV_LIBS})
 

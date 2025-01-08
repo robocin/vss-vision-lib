@@ -4,18 +4,20 @@
 # Update repos
 sudo apt update -y
 
-# Install SFML
-sudo apt install libsfml-dev -y
-
-# Install OpenCV
-sudo apt install libopencv-dev -y
-
-# Install OpenGL + FreeGLUT3
-sudo apt install freeglut3-dev -y
-
-# Install QT5
-sudo apt install qtbase5-dev -y
-
-# Intall Protobuf
-sudo apt install libprotobuf -y
-sudo apt install protobuf-compiler -y
+sudo apt -y install --no-install-recommends \
+    build-essential \
+    pkg-config \
+    zip \
+    unzip \
+    v4l-utils \
+    libsfml-dev \
+    libopencv-dev \
+    freeglut3-dev \
+    libprotobuf-dev 
+    
+sudo apt install \
+    cmake \
+    python3 \
+    libpython3-dev \
+    python3-dev \
+    python3-pip

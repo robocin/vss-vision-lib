@@ -27,11 +27,8 @@
 #include "Vision/PositionProcessing/runlengthencoding.h"
 #include "Vision/ImageProcessing/ImageProcessing.h"
 #include "Vision/ImageProcessing/LUTSegmentation.h"
+#include "Vision/ImageProcessing/MaggicSegmentation.h"
 #include "Vision/ImageProcessing/WarpCorrection.h"
-#include <QTime>
-#include <QElapsedTimer>
-#include <Timer/Timer.h>
-#include "Network/visionServer/server.h"
 
 //#include "Utils/Entity.h"
 #include "Utils/Utils.h"
@@ -50,7 +47,7 @@ private:
   /**
    * @brief    Private Construtor
    */
-  Vision();
+  Vision(Utils::HUE hueList);
 
   /**
    * @brief    Private Copy Constructor
@@ -128,24 +125,14 @@ private:
    */
   std::vector<Entity> _robotPositions;
 
-  void setObjectsSpeed(QTime timeStamp, std::vector<Entity> &currentPositions);
-
-  std::vector < std::queue < std::pair<cv::Point2d, QTime> > > _lastPositions;
-
-  bool _firstFrameDeepLog, _deepLogRecord, _deepLogRecordingVideo;
+  bool _firstFrameDeepLog;
 
   std::string _deepLogFileName, _deepLogFilePath, _deepLogFileFolder;
   FILE* _deepLogFile;
   unsigned int _deepLogInitialTime;
-  Timer _visionTimer, _visionFrameTimer;
   double _visionRunTime;
-  std::mutex _currentFrameLocker, _visionStatusLocker;
-
-  QTime firstTime;
 
   Point _frameDimensions;
-
-  VisionServer *server;
 
   void saveFrameDimensions(cv::Mat &frame);
 
@@ -159,17 +146,21 @@ private:
   /**
    * @brief    Process the frame , generating as output to (VSS) GameInfo entity's vector with velocity and position of all detected robots .
    */
-  void update();
+  void update(Utils::FrameType frametype = Utils::FrameType::Tracked);
 
+  cv::Mat output_frame;
 public:
   /**
    * @brief    Singleton method to acess Vision module
    *
    * @return   return a Vision reference, unique and common to all class in the program
    */
-  static Vision& singleton();
+  static Vision& singleton(Utils::HUE hueList);
+  Utils::HUE hueList;
 
   Point getFrameDimensions();
+
+  PositionProcessing::BlobsEntities detect(cv::Mat &frame);
 
   /**
    * @brief    function called everytime a new frame reachs the camera
@@ -178,7 +169,7 @@ public:
    * @param[in]   timeStamp
    * @param[in]   vss everything
    */
-  void update(cv::Mat& frame, QTime timeStamp);
+  cv::Mat update(cv::Mat& frame, Utils::FrameType frametype = Utils::FrameType::Tracked);
 
   /**
    * @brief    Gets the debug segmentation frame with all segmented regions colorized with your tag color.
@@ -244,19 +235,6 @@ public:
    * @param value value of the new param
    */
   void setTrackParam(std::string var,int value);
-  /**
-   * @brief SetDetectionParamFromXml set detection param from a xml file
-   */
-  void setDetectionParamFromXml();
-
-  /**
-   * @brief SetTrackParamFromXml set track param from a xml file
-   */
-  void setTrackParamFromXml();
-  /**
-   * @brief savePositionParam save all param of PositionProcessing into xml file
-   */
-  void savePositionParam();
 
   /**
    * @brief    Gets the corrected debug frame.
@@ -343,9 +321,7 @@ public:
   void getCurrentFrame(cv::Mat& frame);
 
   void setDeepLogFileName(std::string fileName);
-  void setRecordingVideo(bool value);
   void closeDeepLog();
-  void recordDeepLog();
 
 
   /**

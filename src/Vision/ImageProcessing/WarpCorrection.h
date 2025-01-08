@@ -4,15 +4,9 @@
 #include "ImageProcessing.h"
 #include "Vision/ColorSpace.h"
 
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonValue>
-
 #define FIELDWIDTH 170
 #define FIELDHEIGHT 130
 
-#define FIELDLIMITSPATH "Config/fieldLimits.json"
 class WarpCorrection : public ImageProcessing {
  public:
   /**
@@ -68,7 +62,7 @@ class WarpCorrection : public ImageProcessing {
   cv::Size _matrixSize;
   cv::Mat _transformationX;
   cv::Mat _transformationY;
-  std::mutex _frameLocker, _mapsLocker, _pointsLocker;
+  
 };
 
 #endif

@@ -5,8 +5,6 @@
 #define KMEANS_LABEL "KMEANS"
 #define WHEREARE_LABEL "WHEREARETHOSE"
 #define GENERIC_TRACKING_LABEL "GENERICTRACKINGLABEL"
-#define SEGMENTATION_DEFAULT_FILE  "Config/Segmentation/Default.xml"
-
 /**
  * { Structure to represent pixels in YUV color space }
  */
@@ -47,7 +45,5 @@ namespace ColorSpace {
   extern RGB markerColors[NUMBEROFCOLOR];
   extern String colorNames[NUMBEROFCOLOR];
 }
-
-
 
 #endif // COLORSPACE_H

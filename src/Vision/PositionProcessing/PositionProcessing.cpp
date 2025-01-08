@@ -1,24 +1,6 @@
 #include "PositionProcessing.h"
+#include "Entity/Entity.h"
 #include "Utils/EnumsAndConstants.h"
-
-void PositionProcessing::saveXML()
-{
-  cv::FileStorage file(POSITION_PROCESSING_FILE,cv::FileStorage::WRITE);
-  file<<"Default";
-  file<<"{";
-  file<<MINSIZE<<param[MINSIZE];
-  file<<MAXSIZE<<param[MAXSIZE];
-  file<<MINSIZEBALL<<param[MINSIZEBALL];
-  file<<MAXSIZEBALL<<param[MAXSIZEBALL];
-  file<<BLOBMAXDIST<<param[BLOBMAXDIST ];
-  file<<MYTEAM<<param[MYTEAM];
-  file<<ENEMYTEAM<<param[ENEMYTEAM];
-  file<<ENEMYSEARCH<<param[ENEMYSEARCH];
-  file<<SHOWELEMENT<<param[SHOWELEMENT];
-  file<<"}";
-  file.release();
-
-}
 
 void PositionProcessing::matchBlobs(cv::Mat& debugFrame){
 
@@ -42,6 +24,12 @@ void PositionProcessing::matchBlobs(cv::Mat& debugFrame){
 
   Entity ball;
   findBall(ball,debugFrame);
+
+  setBlobs(BlobsEntities({
+    entities.ball,
+    groupedBlobs.team,
+    groupedBlobs.enemies
+  }));
 
   vss.setEntities(ball,allPlayers);
 }
@@ -157,32 +145,7 @@ void PositionProcessing::findBall(Entity &ball, cv::Mat& debugFrame) {
       }
     }
 
-    if (!blobBall.valid) {
-        int fps = 30;
-        auto & ballPosVel = _kalmanFilterBall[0][0].update(this->_ballLastPosition.x,this->_ballLastPosition.y);
-        Geometry::PT filtPoint (ballPosVel(0, 0), ballPosVel(1, 0));
-        Geometry::PT ballVel(ballPosVel(2, 0)*fps, ballPosVel(3, 0)*fps);
-
-        Float actualTime = vss.time().getMilliseconds();
-        Float dt = (actualTime-this->_ballLastTime)/1000; // dt in seconds
-        this->_ballLastTime = actualTime;
-
-        Float lostFrames = dt*fps;
-        ballVel = ballVel/lostFrames;
-        filtPoint.x = filtPoint.x + ballVel.x*dt;
-        filtPoint.y = filtPoint.y + ballVel.y*dt;
-
-        filtPoint.x = Utils::bound(filtPoint.x, -85, 85);
-        filtPoint.y = Utils::bound(filtPoint.y, -65, 65);
-
-        cv::circle(debugFrame, Utils::convertPositionCmToPixel(cv::Point(static_cast<int>(filtPoint.x),static_cast<int>(filtPoint.y))), 9, _colorCar[OrangeCOL], 2, cv::LINE_AA);
-        //cv::line(debugFrame, Utils::convertPositionCmToPixel(cv::Point(filtPoint.x,filtPoint.y)),Utils::convertPositionCmToPixel(cv::Point(filtPoint.x+ballVel.x,filtPoint.y+ballVel.y)),_colorCar[OrangeCOL], 2);
-
-        ball.id(0);
-        ball.update(Point(filtPoint.x,filtPoint.y),atan2(ballVel.y,ballVel.x));
-        this->_ballLastPosition.x = filtPoint.x;
-        this->_ballLastPosition.y = filtPoint.y;
-    }
+    setBlobs(BlobsEntities({blobBall}));
 
     // Debug
     //cv::circle(debugFrame, blobBall.position, 9, _colorCar[OrangeCOL], 2, cv::LINE_AA);
@@ -195,7 +158,6 @@ void PositionProcessing::findBall(Entity &ball, cv::Mat& debugFrame) {
     int fps = 100;
     Geometry::PT ballVel(ballPosVel(2, 0)*fps, ballPosVel(3, 0)*fps);
     ball.update(Point(newPosition.x,newPosition.y),atan2(ballVel.y,ballVel.x));
-    this->_ballLastTime = vss.time().getMilliseconds();
     ball.id(0);
 
     newPosition.x = Utils::bound(newPosition.x, -85, 85);
@@ -370,6 +332,10 @@ PositionProcessing::FieldRegions PositionProcessing::pairBlobs() {
   return result;
 }
 
+void PositionProcessing::setBlobs(BlobsEntities blobs) {
+  this->entities = blobs;
+}
+
 void PositionProcessing::setUp(std::string var, int value)
 {
   this->param[var] = value;
@@ -443,52 +409,6 @@ void PositionProcessing::initBlob(PositionProcessing::Blob &blob)
   blob.valid = false;
 }
 
-void PositionProcessing::initDefault()
-{
-  this->_colorCar[NoCOL] = cv::Scalar(255,255,255);
-  this->_colorCar[OrangeCOL] = cv::Scalar(0,165,255);
-  this->_colorCar[BlueCOL] = cv::Scalar(255,0,0);
-  this->_colorCar[YellowCOL] = cv::Scalar(0,255,255);
-  this->_colorCar[RedCOL] = cv::Scalar(0,0,255);
-  this->_colorCar[GreenCOL] = cv::Scalar(0,255,0);
-  this->_colorCar[PinkCOL] = cv::Scalar(255,0,255);
-  this->_colorCar[LightBlueCOL] = cv::Scalar(210,252,4);
-  this->_colorCar[PurpleCOL] = cv::Scalar(200,055,055);
-  this->_colorCar[BrownCOL] = cv::Scalar(38,66,107);
-  this->_colorCar[ColorStrange] = cv::Scalar(255,255,255);
-
-  this->segColor[NoCOL] = cv::Vec3b(0,0,0);
-  this->segColor[OrangeCOL] = cv::Vec3b(20,147,255);
-  this->segColor[BlueCOL] = cv::Vec3b(255,0,0);
-  this->segColor[YellowCOL] = cv::Vec3b(0,255,255);
-  this->segColor[RedCOL] = cv::Vec3b(0,0,255);
-  this->segColor[GreenCOL] = cv::Vec3b(0,255,0);
-  this->segColor[PinkCOL] = cv::Vec3b(164,0,255);
-  this->segColor[LightBlueCOL] = cv::Vec3b(206,250,135);
-  this->segColor[PurpleCOL] = cv::Vec3b(250,230,230);
-  this->segColor[BrownCOL] = cv::Vec3b(25,0,51);
-  this->segColor[ColorStrange] = cv::Vec3b(0,0,0);
-
-  cv::FileStorage fs(POSITION_PROCESSING_FILE,cv::FileStorage::READ);
-
-  if(!fs.isOpened())
-  {
-    spdlog::get("Vision")->error("Position Processing Xml: Error diretorio, {}", POSITION_PROCESSING_FILE);
-    return;
-  }
-  cv::FileNode node = fs[DEFAULT];
-  this->setUp(MINSIZE,node[MINSIZE]);
-  this->setUp(MAXSIZE,node[MAXSIZE]);
-  this->setUp(MINSIZEBALL,node[MINSIZEBALL]);
-  this->setUp(MAXSIZEBALL,node[MAXSIZEBALL]);
-  this->setUp(BLOBMAXDIST,node[BLOBMAXDIST]);
-  this->setUp(MYTEAM,node[MYTEAM]);
-  this->setUp(ENEMYTEAM,node[ENEMYTEAM]);
-  this->setUp(ENEMYSEARCH,node[ENEMYSEARCH]);
-  this->setUp(SHOWELEMENT,node[SHOWELEMENT]);
-  fs.release();
-}
-
 int PositionProcessing::getTeamColor()
 {
   return this->_teamColor;
@@ -519,4 +439,7 @@ int PositionProcessing::newId(int oldId){
   return id;
 }
 
+PositionProcessing::BlobsEntities PositionProcessing::getDetection(){
+  return this->entities;
+}
 

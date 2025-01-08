@@ -46,3 +46,6 @@ client/RCClient
 
 # Compiled protobuf
 *_pb2.py
+
+# scikit-build
+_skbuild/

@@ -8,7 +8,23 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/src")
+# set(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/src")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/vss_vision)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+include(GNUInstallDirs)
+include(FindPackageHandleStandardArgs)
+include(FetchContent)
+
+FetchContent_Declare(
+  pybind11
+  URL https://github.com/pybind/pybind11/archive/refs/tags/v2.6.2.tar.gz
+  URL_HASH SHA256=8ff2fff22df038f5cd02cea8af56622bc67f5b64534f1b83b9f133b8366acff2
+)
+FetchContent_MakeAvailable(pybind11)
+
+set(python_module_name vss_vision)
 
 set(SOURCES
     src/main.cpp
@@ -23,31 +39,15 @@ set(SOURCES
     src/Vision/ImageProcessing/MaggicSegmentation.cpp
     src/Vision/ImageProcessing/WarpCorrection.cpp
     src/Vision/ImageProcessing/OpenCV/connectedcomponents.cpp
-    src/visionconfigdialog.cpp
-    src/fieldpointscalibratedialog.cpp
-    src/segmentationconfigdialog.cpp
-    src/cameraconfigurationdialog.cpp
-    src/Logging/logging.cpp
     src/Vision/ColorSpace.cpp
-    src/maggicsegmentationdialog.cpp
-    src/Timer/Timer.cpp
-    src/visionthread.cpp
-    src/CameraManager/CameraManager.cpp
-    src/CameraManager/CameraThread.cpp
     src/Vision/PositionProcessing/runlengthencoding.cpp
     src/Vision/PositionProcessing/BlobDetection.cpp
-    src/TBBThreadManager.cpp
     src/Field/Field.cpp
     src/GameInfo/GameInfo.cpp
     src/Utils/Global.cpp
-    src/Windows/MainVSSWindow.cpp
     src/Utils/Geometry.cpp
     src/Utils/Draw.cpp
     src/Utils/EnumsAndConstants.cpp
-    src/Windows/RobotWidget.cpp
-    src/trackconfigdialog.cpp
-    src/Network/Network.cpp
-    src/Network/visionServer/server.cpp
 )
 
 set(HEADERS
@@ -63,34 +63,17 @@ set(HEADERS
     src/Vision/ImageProcessing/WarpCorrection.h
     src/Vision/ColorSpace.h
     src/Vision/ImageProcessing/OpenCV/connectedcomponents.hpp
-    src/visionconfigdialog.h
-    src/fieldpointscalibratedialog.h
-    src/segmentationconfigdialog.h
-    src/cameraconfigurationdialog.h
-    src/Logging/logging.h
-    src/maggicsegmentationdialog.h
-    src/Timer/Timer.h
-    src/visionthread.h
-    src/CameraManager/CameraManager.h
-    src/CameraManager/CameraThread.h
     src/Vision/PositionProcessing/runlengthencoding.h
     src/Vision/PositionProcessing/BlobDetection.h
-    src/TBBThreadManager.h
     src/Utils/Types.h
     src/Field/Field.h
     src/Utils/EnumsAndConstants.h
     src/GameInfo/GameInfo.h
     src/Utils/Defines.h
     src/Utils/Global.h
-    src/Windows/MainVSSWindow.h
     src/Utils/Geometry.h
     src/Utils/Draw.h
-    src/Windows/RobotWidget.h
     src/Utils/BetterEnum.h
-    src/trackconfigdialog.h
-    src/Windows/FileConstants.h
-    src/Network/Network.h
-    src/Network/visionServer/server.h
 )
 
 set(RESOURCES
@@ -98,31 +81,34 @@ set(RESOURCES
     src/iconTools/icontools.qrc
 )
 
-set(PROTOS
-    src/Network/protobuf/proto/messages_robocup_ssl_detection.proto
-    src/Network/protobuf/proto/messages_robocup_ssl_geometry.proto
-    src/Network/protobuf/proto/wrapper.proto
+pybind11_add_module(${python_module_name} MODULE
+  ${SOURCES}
+  ${HEADERS}
 )
 
-find_package(Protobuf REQUIRED)
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTOS})
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${RESOURCES} ${PROTO_SRCS} ${PROTO_HDRS})
+# add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${RESOURCES} ${PROTO_SRCS} ${PROTO_HDRS})
 
-target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/src")
-target_include_directories(${PROJECT_NAME} PUBLIC "${PROJECT_SOURCE_DIR}/include")
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+set(CMAKE_CXX_FLAGS -O3)
+message(CMAKE_CXX_FLAGS)
+message("${CMAKE_CXX_FLAGS}")
 
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets Gui Network)
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network)
+target_include_directories(${python_module_name} PUBLIC "${PROJECT_SOURCE_DIR}/src")
+target_include_directories(${python_module_name} PUBLIC "${PROJECT_SOURCE_DIR}/include")
+target_include_directories(${python_module_name} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
+set(OpenCV_STATIC ON)
 find_package(OpenCV REQUIRED)
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+target_link_libraries(${python_module_name} PUBLIC ${OpenCV_LIBS})
 
 find_package(TBB REQUIRED)
-target_link_libraries(${PROJECT_NAME} TBB::tbb)
+target_link_libraries(${python_module_name} PUBLIC TBB::tbb)
 
-find_package(SFML REQUIRED COMPONENTS network system)
-target_link_libraries(${PROJECT_NAME} sfml-network sfml-system)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/__init__.py
+        DESTINATION ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
-target_link_libraries(${PROJECT_NAME} ${Protobuf_LIBRARIES})
+message(${python_module_name})
+
+install(TARGETS ${python_module_name} DESTINATION .)
+
+

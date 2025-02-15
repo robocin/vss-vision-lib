@@ -97,27 +97,21 @@ void Vision::update(Utils::FrameType frametype)
 cv::Mat Vision::update(cv::Mat &frame, Utils::FrameType frametype)
 {
   delete this->_segmentation;
+  delete this->_detection;
   this->_segmentation = new MaggicSegmentation(this->hueList);
+  this->_detection = new BlobDetection();
   this->setFrame(frame);
   this->update(frametype);
-  std::vector<Entity> entities;
-  entities.resize(1);
-  entities[0] = vss.ball();
-  Players players = vss.players();
-  entities.insert(entities.end(),players.begin(),players.end());
    return this->output_frame;
 }
 
-PositionProcessing::BlobsEntities Vision::detect(cv::Mat &frame)
+GameInfo Vision::detect(cv::Mat &frame)
 {
-  this->setFrame(frame);
-  this->update(Utils::FrameType::Tracked);
-  std::vector<Entity> entities;
-  entities.resize(1);
-  entities[0] = vss.ball();
-  Players players = vss.players();
-  entities.insert(entities.end(),players.begin(),players.end());
-  return this->_detection->getDetection();   
+    this->setFrame(frame);
+    this->_processingFrame = this->_currentFrame.clone();
+    this->_processingFrame = this->_segmentation->run(this->_processingFrame);
+    auto _runs = this->_compression->run(this->_processingFrame);
+    return this->_detection->run(_runs, this->_processingFrame.rows, this->_processingFrame.cols);
 }
 
 void Vision::getSegmentationDebugFrame(cv::Mat& frame)

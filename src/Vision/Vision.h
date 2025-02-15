@@ -29,6 +29,7 @@
 #include "Vision/ImageProcessing/LUTSegmentation.h"
 #include "Vision/ImageProcessing/MaggicSegmentation.h"
 #include "Vision/ImageProcessing/WarpCorrection.h"
+#include "GameInfo/GameInfo.h"
 
 //#include "Utils/Entity.h"
 #include "Utils/Utils.h"
@@ -160,7 +161,7 @@ public:
 
   Point getFrameDimensions();
 
-  PositionProcessing::BlobsEntities detect(cv::Mat &frame);
+  GameInfo detect(cv::Mat &frame);
 
   /**
    * @brief    function called everytime a new frame reachs the camera

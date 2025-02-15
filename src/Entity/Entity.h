@@ -4,14 +4,15 @@
 #include "Utils/Types.h"
 
 class Entity {
+  
+  public:
+  
   uint m_id;
   Bool m_updated;
   Point m_position;
   Float m_angle;
   uint m_team;
-
-public:
-
+  
   /**
    * Constructor of Entity's class that uses an default '-1' id.
    * @return An Entity object

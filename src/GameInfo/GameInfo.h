@@ -8,14 +8,15 @@
 #include "Entity/Entity.h"
 
 class GameInfo {
+  
+  public:
+  
   cv::Mat m_frame;
   Entity m_ball;
   Players m_players;
   int m_half;
 
   Void setLockedFrame(const Bool &t_active = true);
-
-public:
   GameInfo();
 
   static GameInfo &singleton();

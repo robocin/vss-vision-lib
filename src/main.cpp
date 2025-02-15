@@ -4,6 +4,8 @@
 #include "Vision/PositionProcessing/PositionProcessing.h"
 #include "Vision/Vision.h"
 #include "Utils/Utils.h"
+#include "Entity/Entity.h"
+#include "GameInfo/GameInfo.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <Python.h>
@@ -15,52 +17,37 @@ using Blob = PositionProcessing::Blob;
 using Region = PositionProcessing::Region;
 using FieldRegions = PositionProcessing::FieldRegions;
 using BlobsEntities = PositionProcessing::BlobsEntities;
+using GameInfo = GameInfo;
 
 
-py::dict convertEntitiesToPyDict(const BlobsEntities& entities) {
-    py::dict py_entitites;
+py::dict convertEntitiesToPyDict(const GameInfo& gameInfo) {
+    py::dict py_gameInfo;
 
-    auto convert_regions = [](const std::vector<Region>& regions) {
-        py::list py_regions;
-        for (const auto& region : regions) {
-            py::dict py_region;
-            py::list py_blobs;
-            for (const auto& blob : region.blobs) {
-                py::dict py_blob;
-                py_blob["id"] = blob.id;
-                py::list position;
-                position.append(blob.position.x);
-                position.append(blob.position.y);
-                py_blob["position"] = position;
-                py_blob["angle"] = blob.angle;
-                py_blob["valid"] = blob.valid;
-                py_blob["area"] = blob.area;
-                py_blob["color"] = blob.color;
-                py_blobs.append(py_blob);
-            }
-            py_region["blobs"] = py_blobs;
-            py_region["team"] = region.team;
-            py_region["distance"] = region.distance;
-            py_regions.append(py_region);
+    auto convert_players = [](const std::vector<Player>& players) {
+        py::list py_players;
+        for (const Entity& player : players) {
+            py::dict py_player;
+            py_player["id"] = player.m_id;
+            py_player["position"] = py::make_tuple(player.m_position.x, player.m_position.y);
+            py_player["angle"] = player.m_angle;
+            py_player["team"] = player.m_team;
+            py_players.append(py_player());
         }
-        return py_regions;
+        return py_players;
     };
 
-    py_entitites["team"] = convert_regions(entities.team);
-    py_entitites["enemies"] = convert_regions(entities.enemies);
+    py_gameInfo["players"] = convert_players(gameInfo.m_players);
 
     py::dict py_ball;
+    
+    Entity ball = gameInfo.m_ball;
+    py_ball["id"] = ball.m_id;
+    py_ball["position"] = py::make_tuple(ball.m_position.x, ball.m_position.y);
+    py_ball["angle"] = ball.m_angle;
 
-    py_ball["id"] = entities.ball.id;
-    py_ball["position"] = py::make_tuple(entities.ball.position.x, entities.ball.position.y);
-    py_ball["angle"] = entities.ball.angle;
-    py_ball["valid"] = entities.ball.valid;
-    py_ball["area"] = entities.ball.area;
-    py_ball["color"] = entities.ball.color;
+    py_gameInfo["ball"] = py_ball;
 
-    py_entitites["ball"] = py_ball;
-
-    return py_entitites;
+    return py_gameInfo;
 }
 
 py::dict run_detect(py::array_t<uint8_t>& img, py::array_t<int> hues, py::array_t<int> colors) {
@@ -75,9 +62,9 @@ py::dict run_detect(py::array_t<uint8_t>& img, py::array_t<int> hues, py::array_
   py::buffer_info buf = img.request();
   cv::Mat frame(buf.shape[0], buf.shape[1], CV_8UC3, (unsigned char*)buf.ptr);
 
-  BlobsEntities regions = vis.detect(frame);
+  GameInfo gameInfo = vis.detect(frame);
 
-  return convertEntitiesToPyDict(regions);
+  return convertEntitiesToPyDict(gameInfo);
 }
 
 

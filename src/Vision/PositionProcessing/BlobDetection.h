@@ -28,7 +28,7 @@ public:
    * @return   Vector of positions
    */
 
-  void run(std::vector<std::vector<Run> > runs, int rows = DEFAULT_ROWS, int cols = DEFAULT_COLS);
+  GameInfo run(std::vector<std::vector<Run> > runs, int rows = DEFAULT_ROWS, int cols = DEFAULT_COLS);
   
   /**
    * @brief    Get a frame that helps to debug a function

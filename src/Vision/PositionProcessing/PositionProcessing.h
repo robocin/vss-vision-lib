@@ -152,7 +152,7 @@ public:
    * @return   Vector of positions
    */
 
-  virtual void run(std::vector< std::vector< Run > > runs,
+  virtual GameInfo run(std::vector< std::vector< Run > > runs,
            int rows = DEFAULT_ROWS,
            int cols = DEFAULT_COLS) = 0;
 

@@ -161,7 +161,7 @@ public:
 
   Point getFrameDimensions();
 
-  GameInfo detect(cv::Mat &frame);
+  std::pair<GameInfo, cv::Mat> detect(cv::Mat &frame);
 
   /**
    * @brief    function called everytime a new frame reachs the camera

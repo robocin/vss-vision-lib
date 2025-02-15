@@ -21,36 +21,36 @@ using GameInfo = GameInfo;
 
 
 py::dict convertEntitiesToPyDict(const GameInfo& gameInfo) {
-    py::dict py_gameInfo;
+  py::dict py_gameInfo;
 
-    auto convert_players = [](const std::vector<Player>& players) {
-        py::list py_players;
-        for (const Entity& player : players) {
-            py::dict py_player;
-            py_player["id"] = player.m_id;
-            py_player["position"] = py::make_tuple(player.m_position.x, player.m_position.y);
-            py_player["angle"] = player.m_angle;
-            py_player["team"] = player.m_team;
-            py_players.append(py_player());
-        }
-        return py_players;
-    };
+  auto convert_players = [](const std::vector<Player>& players) {
+      py::list py_players;
+      for (const Entity& player : players) {
+          py::dict py_player;
+          py_player["id"] = player.m_id;
+          py_player["position"] = py::make_tuple(player.m_position.x, player.m_position.y);
+          py_player["angle"] = player.m_angle;
+          py_player["team"] = player.m_team;
+          py_players.append(py_player);
+      }
+      return py_players;
+  };
 
-    py_gameInfo["players"] = convert_players(gameInfo.m_players);
+  py_gameInfo["players"] = convert_players(gameInfo.m_players);
 
-    py::dict py_ball;
-    
-    Entity ball = gameInfo.m_ball;
-    py_ball["id"] = ball.m_id;
-    py_ball["position"] = py::make_tuple(ball.m_position.x, ball.m_position.y);
-    py_ball["angle"] = ball.m_angle;
+  py::dict py_ball;
+  
+  Entity ball = gameInfo.m_ball;
+  py_ball["id"] = ball.m_id;
+  py_ball["position"] = py::make_tuple(ball.m_position.x, ball.m_position.y);
+  py_ball["angle"] = ball.m_angle;
 
-    py_gameInfo["ball"] = py_ball;
+  py_gameInfo["ball"] = py_ball;
 
-    return py_gameInfo;
+  return py_gameInfo;
 }
 
-py::dict run_detect(py::array_t<uint8_t>& img, py::array_t<int> hues, py::array_t<int> colors) {
+py::dict run_detect(py::array_t<uint8_t>& img, py::array_t<int> hues, py::array_t<int> colors, py::array_t<int> blob_sizes) {
   Utils::HUE hueList = {};
   hueList.push_back({(double) hues.at(0), -1});
   for (int i = 0; i < hues.size()-1; i++) {
@@ -62,9 +62,21 @@ py::dict run_detect(py::array_t<uint8_t>& img, py::array_t<int> hues, py::array_
   py::buffer_info buf = img.request();
   cv::Mat frame(buf.shape[0], buf.shape[1], CV_8UC3, (unsigned char*)buf.ptr);
 
-  GameInfo gameInfo = vis.detect(frame);
+  vis.setDetectionParam("minSize", blob_sizes.at(0));
+  vis.setDetectionParam("maxSize", blob_sizes.at(1));
 
-  return convertEntitiesToPyDict(gameInfo);
+  std::pair<GameInfo, cv::Mat> ans = vis.detect(frame);
+
+  GameInfo gameInfo = ans.first;
+
+  cv::Mat image = ans.second;
+
+  py::dict py_answer = py::dict();
+
+  py_answer["image"] = py::array({image.rows, image.cols, static_cast<int>(image.channels())}, image.data);
+  py_answer["gameInfo"] = convertEntitiesToPyDict(gameInfo);
+
+  return py_answer;
 }
 
 

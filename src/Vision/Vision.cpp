@@ -105,13 +105,25 @@ cv::Mat Vision::update(cv::Mat &frame, Utils::FrameType frametype)
    return this->output_frame;
 }
 
-GameInfo Vision::detect(cv::Mat &frame)
+std::pair<GameInfo, cv::Mat> Vision::detect(cv::Mat &frame)
 {
     this->setFrame(frame);
+
+    Global::setConvertRatio(_convert);
+
     this->_processingFrame = this->_currentFrame.clone();
     this->_processingFrame = this->_segmentation->run(this->_processingFrame);
+
     auto _runs = this->_compression->run(this->_processingFrame);
-    return this->_detection->run(_runs, this->_processingFrame.rows, this->_processingFrame.cols);
+    saveFrameDimensions(this->_processingFrame);
+    auto ans = this->_detection->run(_runs, this->_processingFrame.rows, this->_processingFrame.cols);
+
+    cv::Mat frameAux;
+    this->getDetectionFrame(frameAux);
+
+    frameAux = frameAux + frame;
+
+    return {ans, frameAux};
 }
 
 void Vision::getSegmentationDebugFrame(cv::Mat& frame)

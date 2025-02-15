@@ -19,6 +19,7 @@ class Entity {
    */
   Entity(const uint &t_id = 99);
 
+  String to_string();
   /**
    * Update entity's position and angle
    */
